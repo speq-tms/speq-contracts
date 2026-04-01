@@ -1,7 +1,31 @@
 # speq-contracts
 
-Versioned schemas and compatibility contracts for speq.
+Versioned schemas and compatibility contracts for the `speq` ecosystem.
+
+## Scope
+
+This repository is the source of truth for:
+
+- manifest schema;
+- test YAML schema;
+- run JSON result schema;
+- exit code contract and compatibility notes.
+
+## Planned structure
+
+```text
+schemas/
+  manifest/
+  test/
+  results/
+docs/
+```
+
+## Versioning
+
+- Schema changes follow SemVer.
+- Breaking schema changes require migration notes.
 
 ## Status
 
-Bootstrap initialized.
+Bootstrap complete. Ready for v1 contract freeze.
