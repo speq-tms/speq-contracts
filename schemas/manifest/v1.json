@@ -48,6 +48,60 @@
       "minLength": 1,
       "default": "fixtures",
       "description": "Directory for fixture files. Defaults to 'fixtures'."
+    },
+    "retry": {
+      "$ref": "#/$defs/retryConfig",
+      "description": "Global retry policy applied to all API steps."
+    }
+  },
+  "$defs": {
+    "retryConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Global retry configuration for API steps.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable retry globally."
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3,
+          "description": "Maximum number of attempts per HTTP call."
+        },
+        "delayMs": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Base delay between retries in milliseconds."
+        },
+        "backoff": {
+          "type": "string",
+          "enum": ["fixed", "exponential"],
+          "default": "fixed",
+          "description": "Backoff strategy: fixed delay or exponential."
+        },
+        "retryOn": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Conditions under which to retry.",
+          "properties": {
+            "networkErrors": {
+              "type": "boolean",
+              "default": false,
+              "description": "Retry on network-level errors."
+            },
+            "statusCodes": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 100, "maximum": 599 },
+              "default": [],
+              "description": "HTTP status codes that trigger a retry."
+            }
+          }
+        }
+      }
     }
   }
 }

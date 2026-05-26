@@ -158,6 +158,9 @@
         "ref": {
           "type": "string",
           "minLength": 1
+        },
+        "condition": {
+          "$ref": "#/$defs/condition"
         }
       },
       "allOf": [
@@ -225,6 +228,48 @@
         },
         "inline": {
           "description": "Inline JSON Schema (only for type: schema)."
+        }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "path", "equals"],
+      "description": "Condition that must be met for the step to succeed (enables waiter polling).",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["jsonpath"],
+          "description": "Condition evaluation type. Currently only 'jsonpath' is supported."
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "JSONPath expression to evaluate against the response body."
+        },
+        "equals": {
+          "description": "Expected value at the JSONPath location."
+        },
+        "wait": {
+          "$ref": "#/$defs/waitConfig"
+        }
+      }
+    },
+    "waitConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timeoutMs", "intervalMs"],
+      "description": "Waiter configuration for polling until condition is met.",
+      "properties": {
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum time to wait for the condition in milliseconds."
+        },
+        "intervalMs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Time between polling attempts in milliseconds."
         }
       }
     }
