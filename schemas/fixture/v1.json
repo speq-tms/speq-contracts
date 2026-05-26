@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://speq.dev/schemas/fixture/v1.json",
+  "title": "speq fixture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixture"],
+  "properties": {
+    "fixture": {
+      "$ref": "#/$defs/fixtureBody"
+    }
+  },
+  "$defs": {
+    "fixtureBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build"],
+      "properties": {
+        "schemaRef": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Optional path to a JSON Schema file relative to schemasDir used for validation."
+        },
+        "build": {
+          "type": "object",
+          "description": "Map of field names to values or gen blocks.",
+          "additionalProperties": {
+            "$ref": "#/$defs/buildValue"
+          }
+        }
+      }
+    },
+    "buildValue": {
+      "description": "A fixture field value: plain JSON scalar, a gen block, or a nested object.",
+      "oneOf": [
+        { "type": ["string", "number", "boolean", "null"] },
+        { "$ref": "#/$defs/genValue" },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/buildValue" }
+        },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/buildValue" }
+        }
+      ]
+    },
+    "genValue": {
+      "type": "object",
+      "required": ["gen"],
+      "additionalProperties": false,
+      "properties": {
+        "gen": { "$ref": "#/$defs/genConfig" }
+      }
+    },
+    "genConfig": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["uuid", "date-time", "string", "int", "bool", "email", "name"]
+        },
+        "format": {
+          "type": "string",
+          "enum": ["rfc3339", "iso8601"],
+          "description": "Only for type: date-time"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Only for type: string"
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Only for type: string"
+        },
+        "min": {
+          "type": "integer",
+          "description": "Only for type: int"
+        },
+        "max": {
+          "type": "integer",
+          "description": "Only for type: int"
+        }
+      }
+    }
+  }
+}

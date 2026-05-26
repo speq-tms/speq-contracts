@@ -32,6 +32,22 @@
       "type": "string",
       "minLength": 1,
       "default": "reports"
+    },
+    "schemasDir": {
+      "type": "string",
+      "minLength": 1,
+      "default": "schemas"
+    },
+    "modulesDir": {
+      "type": "string",
+      "minLength": 1,
+      "default": "modules"
+    },
+    "fixturesDir": {
+      "type": "string",
+      "minLength": 1,
+      "default": "fixtures",
+      "description": "Directory for fixture files. Defaults to 'fixtures'."
     }
   }
 }

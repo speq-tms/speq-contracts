@@ -146,6 +146,9 @@
         "body": {
           "$ref": "#/$defs/bodyValue"
         },
+        "bodyFromFixture": {
+          "$ref": "#/$defs/bodyFromFixture"
+        },
         "assert": {
           "type": "array",
           "items": {
@@ -184,6 +187,24 @@
         }
       ]
     },
+    "bodyFromFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "description": "Use a fixture file as the request body.",
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the fixture file relative to fixturesDir."
+        },
+        "overrides": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Key-value pairs that override fixture build values."
+        }
+      }
+    },
     "assertion": {
       "type": "object",
       "additionalProperties": false,
@@ -191,13 +212,20 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["status", "json", "contains", "notcontains", "exists", "regex"]
+          "enum": ["status", "json", "contains", "notcontains", "exists", "regex", "schema"]
         },
         "path": {
           "type": "string"
         },
         "expected": {},
-        "value": {}
+        "value": {},
+        "ref": {
+          "type": "string",
+          "description": "Schema file reference (only for type: schema)."
+        },
+        "inline": {
+          "description": "Inline JSON Schema (only for type: schema)."
+        }
       }
     }
   }
