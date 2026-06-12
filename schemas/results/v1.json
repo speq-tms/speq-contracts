@@ -5,10 +5,11 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["status", "startedAtMs", "durationMs", "totals", "tests"],
+  "description": "speq CLI run summary output. Backward-compatible: consumers should accept unknown fields.",
   "properties": {
     "status": {
       "type": "string",
-      "enum": ["passed", "failed"]
+      "enum": ["passed", "failed", "pending"]
     },
     "startedAtMs": {
       "type": "integer",
@@ -34,6 +35,16 @@
         "total": {
           "type": "integer",
           "minimum": 0
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of tests/steps skipped due to ATDD pending status."
+        },
+        "error": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of tests that encountered runtime errors."
         }
       }
     },
@@ -50,7 +61,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["passed", "failed"]
+            "enum": ["passed", "failed", "pending", "error"]
           },
           "message": {
             "type": "string"

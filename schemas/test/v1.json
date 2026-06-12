@@ -14,6 +14,11 @@
       "type": "string",
       "minLength": 1
     },
+    "status": {
+      "type": "string",
+      "enum": ["pending"],
+      "description": "ATDD lifecycle status. When set to 'pending', the test is skipped and reported as pending."
+    },
     "tags": {
       "type": "array",
       "items": {
@@ -94,6 +99,11 @@
         "ref": {
           "type": "string",
           "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending"],
+          "description": "ATDD lifecycle status. When set to 'pending', the step is skipped and all dependent subsequent steps cascade to pending."
         }
       },
       "allOf": [
