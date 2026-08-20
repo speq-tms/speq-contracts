@@ -5,11 +5,12 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["status", "startedAtMs", "durationMs", "totals", "tests"],
-  "description": "speq CLI run summary output. Backward-compatible: consumers should accept unknown fields.",
+  "description": "speq CLI run summary output, as serialised by SummaryReport in speq-cli/src/cli/run.rs.",
   "properties": {
     "status": {
       "type": "string",
-      "enum": ["passed", "failed", "pending"]
+      "enum": ["passed", "failed"],
+      "description": "Overall run status: 'failed' when any test failed or errored, otherwise 'passed'. A run whose tests are all pending reports 'passed'."
     },
     "startedAtMs": {
       "type": "integer",
