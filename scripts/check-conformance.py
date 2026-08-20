@@ -44,6 +44,7 @@ SCHEMA_NAMES = ["common", "manifest", "environment", "test", "suite", "module", 
 
 # Which schema each artifact is validated against, by where it sits in a project.
 CASE_FILES = {
+    "manifest": "manifest-v1.yaml",
     "test": "test-v1.yaml",
     "suite": "suite-v1.yaml",
     "module": "module-v1.yaml",
