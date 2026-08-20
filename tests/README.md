@@ -38,6 +38,20 @@ check that would have caught [#6](https://github.com/speq-tms/speq-docs/issues/6
 `totals.pending`, `totals.error` and a whole `coverage` block that no published contract described, for an
 entire release, with nothing going red.
 
+## Which branch it checks against
+
+The two repositories move together, so the gate has to pair a schema with the examples from the same
+point in the release. It resolves that from the RC invariant — milestone title == RC branch name —
+trying the pull request's **head** branch first, then its base, then `main`.
+
+Head first matters on exactly one pull request: the final `RC -> main` merge. There the head names the
+release candidate under test, and keying off the base would check `v1.1.0` against a `main` that predates
+it — which fails, since `main` has not been rolled out yet.
+
+The rollout merges one repository at a time, so between step 1 and step 2 `speq-contracts@main` is ahead
+of `speq-examples@main`. The summary check runs whichever example project is actually present rather than
+insisting on the newest one, so `main` does not go red inside that window.
+
 ## When it fails
 
 Fix the schema, or fix whatever changed. Do not relax the schema to make the gate pass without reading
