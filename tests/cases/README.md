@@ -39,12 +39,8 @@ document that parses and then misbehaves later, so the strictness is the point:
 - `validate_module_content` checks only the shape of `returns` expressions, never the steps of an
   action, so `speq validate` passes a module whose action cannot run
   ([#23](https://github.com/speq-tms/speq-docs/issues/23)).
-- An environment's `headers` key is not applied as headers at all
-  ([#21](https://github.com/speq-tms/speq-docs/issues/21)); the schema states the convention the key is
-  named for.
-
-`environment/v1.json` is the one open schema, because every key other than `baseUrl` becomes a variable
-of that name and there is no fixed key set to close over.
+`environment/v1.json` is the one open schema, because every key other than `baseUrl` and `headers`
+becomes a variable of that name and there is no fixed key set to close over.
 
 `parity: run-only` marks a case no `speq validate` pass covers — environment files are read at run time,
 and a fixture is loaded only when a step's `bodyFromFixture.ref` points at it.
