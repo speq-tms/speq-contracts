@@ -1,0 +1,38 @@
+# Conformance cases for schemas/fixture/v1.json. See README.md.
+#
+# `speq validate` only loads a fixture that a step's bodyFromFixture.ref points at, so these
+# cases carry no parity signal from the CLI on their own; `expect` is the schema's contract.
+- name: build with literals and generators
+  expect: accept
+  doc:
+    fixture:
+      build:
+        userId: {gen: {type: int, min: 1, max: 10}}
+        title: {gen: {type: string, minLength: 10, maxLength: 50}}
+        draft: false
+
+- name: build with a schemaRef
+  expect: accept
+  doc:
+    fixture:
+      schemaRef: "post.schema.json"
+      build: {userId: 1}
+
+- name: nested and array leaves are walked
+  expect: accept
+  doc:
+    fixture:
+      build:
+        meta: {tags: [a, {gen: {type: uuid}}]}
+
+- name: missing build
+  expect: reject
+  doc: {fixture: {schemaRef: "post.schema.json"}}
+
+- name: build at the top level, without the fixture wrapper
+  expect: reject
+  doc: {build: {userId: 1}}
+
+- name: unknown generator type in a leaf
+  expect: reject
+  doc: {fixture: {build: {ip: {gen: {type: ipv4}}}}}

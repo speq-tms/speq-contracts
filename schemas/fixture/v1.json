@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://speq.dev/schemas/fixture/v1.json",
+  "title": "speq fixture v1",
+  "description": "One file in the fixtures directory, referenced from a step's bodyFromFixture.ref. Parsed as FixtureFile in speq-cli/src/fixtures/mod.rs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fixture"],
+  "properties": {
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build"],
+      "properties": {
+        "build": {
+          "$ref": "../common/v1.json#/$defs/valueOrGen",
+          "description": "The request body this fixture produces. Leaves may be literals or generator blocks, which are resolved at run time. A step's bodyFromFixture.overrides are merged over the result."
+        },
+        "schemaRef": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Schema file the built body is checked against, resolved against the schemas directory. 'speq validate' reports a missing file as a fixture_resolution_error."
+        }
+      }
+    }
+  }
+}

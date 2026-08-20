@@ -2,36 +2,136 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/manifest/v1.json",
   "title": "speq manifest v1",
+  "description": "The manifest.yaml at the root of a .speq project, parsed as Manifest in speq-cli/src/manifest/mod.rs.",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "project", "defaultEnvironment"],
   "properties": {
     "version": {
       "type": "string",
-      "const": "1"
+      "const": "1",
+      "description": "Manifest format version."
     },
     "project": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Project name, reported by 'speq doctor' and used in report output."
     },
     "defaultEnvironment": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Environment file used when --env is not given, without the extension."
     },
     "environmentsDir": {
       "type": "string",
       "minLength": 1,
-      "default": "environments"
+      "default": "environments",
+      "description": "Directory of environment files, relative to the project root."
     },
     "suitesDir": {
       "type": "string",
       "minLength": 1,
-      "default": "suites"
+      "default": "suites",
+      "description": "Directory of test specs and init.yaml files."
     },
     "reportsDir": {
       "type": "string",
       "minLength": 1,
-      "default": "reports"
+      "default": "reports",
+      "description": "Directory run reports are written to."
+    },
+    "schemasDir": {
+      "type": "string",
+      "minLength": 1,
+      "default": "schemas",
+      "description": "Directory a 'schema' assertion's ref and a fixture's schemaRef resolve against."
+    },
+    "modulesDir": {
+      "type": "string",
+      "minLength": 1,
+      "default": "modules",
+      "description": "Directory an import's module name resolves against."
+    },
+    "fixturesDir": {
+      "type": "string",
+      "minLength": 1,
+      "default": "fixtures",
+      "description": "Directory a step's bodyFromFixture.ref resolves against."
+    },
+    "retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Retry policy applied to every api step.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Retries happen only when this is true."
+        },
+        "maxAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3,
+          "description": "Total attempts, including the first."
+        },
+        "delayMs": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Delay before the first retry."
+        },
+        "backoff": {
+          "type": "string",
+          "enum": ["fixed", "exponential"],
+          "default": "fixed",
+          "description": "How the delay grows between attempts."
+        },
+        "retryOn": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "What counts as retryable. With neither set, nothing is retried.",
+          "properties": {
+            "networkErrors": {
+              "type": "boolean",
+              "default": false,
+              "description": "Retry when the request fails to complete at all."
+            },
+            "statusCodes": {
+              "type": "array",
+              "description": "Response statuses that trigger a retry, for example [429, 502, 503, 504].",
+              "items": { "type": "integer", "minimum": 100, "maximum": 599 },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "API coverage analysis against an OpenAPI specification. Keys here are snake_case, unlike the rest of the manifest, because CoverageConfig carries no rename_all.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also switched on by the --coverage flag."
+        },
+        "openapi": {
+          "type": ["string", "null"],
+          "description": "Path to the OpenAPI document, relative to the project root. Overridden by --openapi. Without it, coverage is skipped with a warning."
+        },
+        "report": {
+          "type": "boolean",
+          "default": false,
+          "description": "Print the covered and uncovered endpoint lists after the run."
+        },
+        "fail_below": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Fail the run when coverage is below this percentage. Null means no gate."
+        }
+      }
     }
   }
 }

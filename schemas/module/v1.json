@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://speq.dev/schemas/module/v1.json",
+  "title": "speq module v1",
+  "description": "One file in the modules directory, parsed as ModuleSpec in speq-cli/src/runner/mod.rs. A test imports a module and calls its actions from a 'use' step. Note there is no 'module:' wrapper key — 'actions' and 'variables' sit at the top level.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "variables": {
+      "type": "object",
+      "description": "Variables available to every action in this module.",
+      "additionalProperties": { "$ref": "../common/v1.json#/$defs/valueOrGen" }
+    },
+    "actions": {
+      "type": "object",
+      "description": "Callable actions, keyed by name. A 'use' step reaches one as '<module-or-alias>.<action>'.",
+      "additionalProperties": { "$ref": "#/$defs/action" }
+    }
+  },
+  "$defs": {
+    "action": {
+      "description": "Either the full form, or the legacy shorthand of a bare step array. ModuleActionSpec is an untagged enum, so both parse.",
+      "oneOf": [
+        { "$ref": "#/$defs/detailedAction" },
+        {
+          "type": "array",
+          "title": "legacy shorthand",
+          "description": "A bare array of steps, equivalent to the full form with only 'steps'. It can take no properties and can return nothing.",
+          "items": { "$ref": "../common/v1.json#/$defs/step" }
+        }
+      ]
+    },
+    "detailedAction": {
+      "type": "object",
+      "title": "action",
+      "additionalProperties": false,
+      "properties": {
+        "properties": {
+          "type": "array",
+          "description": "Parameter names this action requires. The calling 'use' step must supply each one in its own 'properties' block.",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "steps": {
+          "type": "array",
+          "description": "The action body.",
+          "items": { "$ref": "../common/v1.json#/$defs/step" }
+        },
+        "returns": {
+          "type": "object",
+          "description": "Values the action hands back to the caller, which binds them under the 'use' step's 'as' name. Each expression must be '$steps.<id>.response.body.<path>', and <id> must match the 'id' of a step in this action — validate_module_content enforces both, but the referenced id cannot be checked by a schema.",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^\\$steps\\.[^.]+\\.response\\.body\\..+$",
+            "description": "For example: $steps.get_post.response.body.userId"
+          }
+        }
+      }
+    }
+  }
+}
