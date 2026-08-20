@@ -11,6 +11,9 @@ This repository is the source of truth for:
 - run JSON result schema;
 - exit code contract and compatibility notes.
 
+These are the only schemas. Components may vendor a mirror of a pinned revision, but never a private
+copy that nothing verifies — see [docs/schema-ownership.md](docs/schema-ownership.md).
+
 ## Planned structure
 
 ```text
