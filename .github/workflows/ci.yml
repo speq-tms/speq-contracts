@@ -1,11 +1,51 @@
 name: ci
+
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "v*"]
+
+env:
+  # The released CLI is used to produce a real summary.json for the results
+  # schema to validate. Bump deliberately when a new version ships.
+  SPEQ_VERSION: v1.0.0
+
 jobs:
-  checks:
+  conformance:
+    name: contracts match reality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo "TODO: add lint/test/build checks"
+      - name: Check out contracts
+        uses: actions/checkout@v4
+
+      - name: Check out examples
+        uses: actions/checkout@v4
+        with:
+          repository: speq-tms/speq-examples
+          path: .examples
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet jsonschema pyyaml referencing
+
+      # A schema can be right about every file on disk and still describe a
+      # summary.json the runtime no longer produces -- that is how v1.0.0
+      # shipped `pending` and `coverage` with no contract for either. So the
+      # gate validates a summary from an actual run, not a checked-in sample.
+      - name: Produce a real summary.json
+        run: |
+          curl -fsSL -o speq.tar.gz \
+            "https://github.com/speq-tms/speq-cli/releases/download/${SPEQ_VERSION}/speq-linux-x86_64.tar.gz"
+          tar -xzf speq.tar.gz
+          ./speq run --speq-root .examples/quickstart --env ci \
+            --report summary --output "$PWD/summary.json"
+
+      - name: Check conformance
+        run: |
+          python3 scripts/check-conformance.py \
+            --schemas schemas \
+            --examples .examples \
+            --cases tests/cases \
+            --summary summary.json

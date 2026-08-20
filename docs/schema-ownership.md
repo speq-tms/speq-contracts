@@ -74,6 +74,13 @@ The published schemas therefore absorb the extension's coverage first
 (`speq-tms/speq-docs#7` and `#8`); the extension then switches to mirroring
 them.
 
+## The gate
+
+Any of this rotting again is a CI failure, not a discovery. `scripts/check-conformance.py` runs on every
+pull request in this repository and in `speq-examples`, and fails when a schema stops accepting a valid
+example, starts accepting a known-invalid one, or falls behind what a real run emits. See
+[tests/README.md](../tests/README.md).
+
 ## Checklist for a contract change
 
 1. Change the schema here, and merge it here first.
