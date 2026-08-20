@@ -116,6 +116,17 @@
   expect: reject
   doc: {id: t, title: T, steps: [{type: use, name: n, action: "m.a", as: "not-an-identifier"}]}
 
+- name: assert written with value instead of expected
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: json, path: "$.id", value: 1}]}]}
+
+- name: assert with both expected and value
+  expect: reject
+  why: >-
+    'value' is a serde alias of 'expected' in speq-cli, so the two spellings in one
+    assertion raise a duplicate-field parse error (speq-tms/speq-docs#28).
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: json, path: "$.id", expected: 1, value: 2}]}]}
+
 - name: unsupported assertion type
   expect: reject
   doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: startswith, expected: a}]}]}
