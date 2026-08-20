@@ -24,6 +24,12 @@ schemas/
 docs/
 ```
 
+## Checks
+
+`scripts/check-conformance.py` validates every artifact in `speq-examples` against these schemas, runs the
+conformance cases in `tests/cases/`, and validates a `summary.json` from a real run. It runs on every pull
+request here and in `speq-examples`. See [tests/README.md](tests/README.md).
+
 ## Versioning
 
 - Schema changes follow SemVer.
