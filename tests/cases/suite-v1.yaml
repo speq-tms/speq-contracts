@@ -1,0 +1,35 @@
+# Conformance cases for schemas/suite/v1.json. See README.md.
+- name: variables, imports and all four hooks
+  expect: accept
+  doc:
+    suite:
+      variables: {postId: 1}
+      imports: [{module: jsonplaceholder, alias: jp}]
+      beforeAll: [{type: use, name: warmup, action: "jp.getPostById", properties: {postId: 1}}]
+      beforeEach: [{type: api, name: probe, method: GET, url: /health}]
+      afterEach: [{type: api, name: probe, method: GET, url: /health}]
+      afterAll: [{type: api, name: teardown, method: GET, url: /health}]
+
+- name: an empty init.yaml contributes nothing
+  expect: accept
+  doc: {}
+
+- name: suite present but empty
+  expect: accept
+  doc: {suite: {}}
+
+- name: hook step missing a name
+  expect: reject
+  doc: {suite: {beforeAll: [{type: api, method: GET, url: /x}]}}
+
+- name: hooks at the top level instead of under suite
+  expect: reject
+  parity: schema-only
+  why: >-
+    SuiteInitSpec ignores unknown keys, so the hooks are silently dropped and the suite runs
+    with none.
+  doc: {beforeAll: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: import without a module
+  expect: reject
+  doc: {suite: {imports: [{alias: jp}]}}
