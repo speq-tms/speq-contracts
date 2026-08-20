@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://speq.dev/schemas/common/v1.json",
+  "title": "speq shared definitions v1",
+  "description": "Definitions shared by more than one .speq artifact schema. Steps, assertions and generator blocks are the same constructs in a test spec, a suite init hook and a module action, so they are defined once here and referenced. This file describes no artifact of its own.",
+  "$defs": {
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "import": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module"
+      ],
+      "properties": {
+        "module": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Module path relative to the modules directory."
+        },
+        "alias": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name this module is referenced by in 'action'. Defaults to the module's own name."
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "api",
+            "use"
+          ],
+          "description": "'api' issues an HTTP request; 'use' invokes a reusable step file or a module action."
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Step identifier, referenced by a module's 'returns' expressions."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable step name, reported in run results."
+        },
+        "method": {
+          "type": "string",
+          "description": "HTTP method. Required for 'api' steps and ignored otherwise."
+        },
+        "url": {
+          "type": "string",
+          "description": "Request URL, absolute or relative to the environment's baseUrl. Required for 'api' steps and ignored otherwise."
+        },
+        "headers": {
+          "type": "object",
+          "description": "Request headers. Values must be strings \u2014 quote numeric values in YAML.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "body": {
+          "$ref": "#/$defs/valueOrGen",
+          "description": "Request body. May contain generator blocks. Mutually exclusive with 'bodyFromFixture'."
+        },
+        "bodyFromFixture": {
+          "$ref": "#/$defs/bodyFromFixture",
+          "description": "Build the request body from a fixture. Mutually exclusive with 'body'."
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "For 'use' steps: path to a reusable step file. Either 'ref' or 'action' is required."
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "description": "For 'use' steps: module action, as '<module-or-alias>.<action>'. Either 'ref' or 'action' is required."
+        },
+        "properties": {
+          "type": "object",
+          "description": "Parameters passed into a module action for this call.",
+          "additionalProperties": true
+        },
+        "as": {
+          "type": "string",
+          "description": "Binds the step result under this name, so later steps can reference {{<name>.\u2026}}. Meaningful for 'use' steps calling a module action with 'returns'."
+        },
+        "assert": {
+          "type": "array",
+          "description": "Assertions evaluated against the step's response.",
+          "items": {
+            "$ref": "#/$defs/assertion"
+          }
+        },
+        "condition": {
+          "$ref": "#/$defs/condition",
+          "description": "Gate the step on a condition, optionally polling until it holds."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending"
+          ],
+          "description": "ATDD lifecycle status. When set to 'pending', the step is skipped and later steps depending on it cascade to pending. 'pending' is the only accepted value."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "api"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "method",
+              "url"
+            ],
+            "properties": {
+              "method": {
+                "$ref": "#/$defs/httpMethod"
+              },
+              "url": {
+                "minLength": 1
+              }
+            },
+            "not": {
+              "required": [
+                "body",
+                "bodyFromFixture"
+              ]
+            },
+            "$comment": "The parser rejects a step carrying both 'body' and 'bodyFromFixture'."
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "use"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "ref"
+                ]
+              },
+              {
+                "required": [
+                  "action"
+                ]
+              }
+            ],
+            "properties": {
+              "as": {
+                "pattern": "^[A-Za-z0-9_]+$",
+                "$comment": "The parser enforces this identifier rule on 'use' steps only."
+              }
+            }
+          }
+        }
+      ]
+    },
+    "httpMethod": {
+      "description": "GET, POST, PUT, PATCH, DELETE, HEAD or OPTIONS. The parser upper-cases before comparing, so any casing is accepted; uppercase is canonical. TRACE is not supported.",
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "HEAD",
+            "OPTIONS"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^(?:[Gg][Ee][Tt]|[Pp][Oo][Ss][Tt]|[Pp][Uu][Tt]|[Pp][Aa][Tt][Cc][Hh]|[Dd][Ee][Ll][Ee][Tt][Ee]|[Hh][Ee][Aa][Dd]|[Oo][Pp][Tt][Ii][Oo][Nn][Ss])$"
+        }
+      ]
+    },
+    "bodyFromFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Fixture name, resolved against the fixtures directory."
+        },
+        "overrides": {
+          "type": "object",
+          "description": "Fields merged over the fixture's built body. Must be an object.",
+          "additionalProperties": {
+            "$ref": "#/$defs/valueOrGen"
+          }
+        }
+      }
+    },
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "status",
+            "json",
+            "contains",
+            "notcontains",
+            "exists",
+            "regex",
+            "schema"
+          ],
+          "description": "Assertion kind."
+        },
+        "path": {
+          "type": "string",
+          "description": "JSONPath into the response, for the assertion kinds that address a field."
+        },
+        "expected": {
+          "description": "Expected value. Any JSON value."
+        },
+        "value": {
+          "description": "Alternative to 'expected', accepted by the parser."
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "For 'schema' assertions: schema file, resolved against the schemas directory."
+        },
+        "inline": {
+          "description": "For 'schema' assertions: the schema itself, written in place."
+        }
+      },
+      "if": {
+        "properties": {
+          "type": {
+            "const": "schema"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "anyOf": [
+          {
+            "required": [
+              "ref"
+            ]
+          },
+          {
+            "required": [
+              "inline"
+            ]
+          }
+        ],
+        "$comment": "A 'schema' assertion needs either 'ref' or 'inline'."
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "path",
+        "equals"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "jsonpath",
+          "description": "Only 'jsonpath' is supported."
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "JSONPath evaluated against the response."
+        },
+        "equals": {
+          "description": "The value the path must equal for the condition to hold. Any JSON value, including null."
+        },
+        "wait": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "timeoutMs",
+            "intervalMs"
+          ],
+          "description": "Poll until the condition holds. The parser additionally requires timeoutMs >= intervalMs, which JSON Schema cannot express.",
+          "properties": {
+            "timeoutMs": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Give up after this many milliseconds. Must be >= intervalMs."
+            },
+            "intervalMs": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Delay between polls, in milliseconds."
+            }
+          }
+        }
+      }
+    },
+    "valueOrGen": {
+      "$comment": "Any JSON value. An object whose only key is 'gen' is a generator block and is validated as one; otherwise objects and arrays are walked, mirroring validate_gen_in_value in speq-cli/src/generator/mod.rs.",
+      "if": {
+        "type": "object",
+        "required": [
+          "gen"
+        ],
+        "maxProperties": 1
+      },
+      "then": {
+        "properties": {
+          "gen": {
+            "$ref": "#/$defs/generator"
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "type": "object"
+        },
+        "then": {
+          "additionalProperties": {
+            "$ref": "#/$defs/valueOrGen"
+          }
+        },
+        "else": {
+          "if": {
+            "type": "array"
+          },
+          "then": {
+            "items": {
+              "$ref": "#/$defs/valueOrGen"
+            }
+          }
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "description": "Generated value. Resolved in test variables, request bodies and fixture builds.",
+      "required": [
+        "type"
+      ],
+      "oneOf": [
+        {
+          "title": "uuid",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "uuid"
+            }
+          }
+        },
+        {
+          "title": "date-time",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "date-time"
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "rfc3339",
+                "iso8601"
+              ],
+              "description": "Defaults to rfc3339."
+            }
+          }
+        },
+        {
+          "title": "string",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "string"
+            },
+            "minLength": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Defaults to 1. Must be <= maxLength."
+            },
+            "maxLength": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Defaults to 32."
+            }
+          }
+        },
+        {
+          "title": "int",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "int"
+            },
+            "min": {
+              "type": "integer",
+              "description": "Must be <= max."
+            },
+            "max": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "title": "bool",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "bool"
+            }
+          }
+        },
+        {
+          "title": "email",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "email"
+            }
+          }
+        },
+        {
+          "title": "name",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "name"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

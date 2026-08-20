@@ -1,11 +1,92 @@
 name: ci
+
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "v*"]
+
+env:
+  # The released CLI is used to produce a real summary.json for the results
+  # schema to validate. Bump deliberately when a new version ships.
+  SPEQ_VERSION: v1.0.0
+
 jobs:
-  checks:
+  conformance:
+    name: contracts match reality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo "TODO: add lint/test/build checks"
+      - name: Check out contracts
+        uses: actions/checkout@v4
+
+      # The release flow keeps a same-named branch in every affected repository
+      # -- milestone title == RC branch name -- so an RC here is checked against
+      # the matching RC there.
+      #
+      # The head branch is tried first, because on the final "RC -> main" pull
+      # request it is the head that names the release candidate under test;
+      # keying off the base would check v1.1.0 against a main that predates it.
+      # Then the base, which is what a normal delivery PR into an RC carries.
+      # Then main.
+      - name: Resolve the matching speq-examples ref
+        id: examples
+        run: |
+          resolved=main
+          for candidate in "${{ github.head_ref }}" "${{ github.base_ref }}" "${{ github.ref_name }}"; do
+            case "$candidate" in
+              v*) ;;
+              *) continue ;;
+            esac
+            if git ls-remote --exit-code --heads \
+                 https://github.com/speq-tms/speq-examples.git "$candidate" >/dev/null 2>&1; then
+              resolved="$candidate"
+              break
+            fi
+          done
+          echo "ref=$resolved" >> "$GITHUB_OUTPUT"
+          echo "checking against speq-examples@$resolved"
+
+      - name: Check out examples
+        uses: actions/checkout@v4
+        with:
+          repository: speq-tms/speq-examples
+          ref: ${{ steps.examples.outputs.ref }}
+          path: .examples
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet jsonschema pyyaml referencing
+
+      # A schema can be right about every file on disk and still describe a
+      # summary.json the runtime no longer produces -- that is how v1.0.0
+      # shipped `pending` and `coverage` with no contract for either. So the
+      # gate validates a summary from an actual run, not a checked-in sample.
+      #
+      # Which project it runs is not fixed: the rollout merges each RC into main
+      # one repository at a time, so there is a window where examples@main does
+      # not yet have the newest project. Take the first one that is actually
+      # there rather than failing on a repository that has not been rolled out.
+      - name: Produce a real summary.json
+        run: |
+          for project in quickstart test-repo-mode-jsonplaceholder test-repo-mode; do
+            if [ -f ".examples/$project/manifest.yaml" ]; then
+              echo "running .examples/$project"
+              curl -fsSL -o speq.tar.gz \
+                "https://github.com/speq-tms/speq-cli/releases/download/${SPEQ_VERSION}/speq-linux-x86_64.tar.gz"
+              tar -xzf speq.tar.gz
+              ./speq run --speq-root ".examples/$project" --env ci \
+                --report summary --output "$PWD/summary.json"
+              exit 0
+            fi
+          done
+          echo "no runnable example project found under .examples" >&2
+          exit 1
+
+      - name: Check conformance
+        run: |
+          python3 scripts/check-conformance.py \
+            --schemas schemas \
+            --examples .examples \
+            --cases tests/cases \
+            --summary summary.json
