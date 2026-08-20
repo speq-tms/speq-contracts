@@ -1,0 +1,169 @@
+# Conformance cases for schemas/test/v1.json. See README.md.
+#
+# --- the surface enumerated in speq-tms/speq-docs#7 as missing ---
+- name: imports with alias
+  expect: accept
+  doc:
+    id: t
+    title: T
+    imports:
+      - module: users
+        alias: u
+    steps: [{type: use, name: call, action: "u.create", as: created}]
+
+- name: test-level status pending
+  expect: accept
+  doc: {id: t, title: T, status: pending, steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: variables holding a generator object
+  expect: accept
+  doc:
+    id: t
+    title: T
+    variables: {who: {gen: {type: email}}, n: {gen: {type: int, min: 1, max: 5}}}
+    steps: [{type: api, name: n, method: GET, url: /x}]
+
+- name: variables holding a nested object
+  expect: accept
+  doc:
+    id: t
+    title: T
+    variables: {payload: {a: 1, b: [1, 2, {gen: {type: uuid}}]}}
+    steps: [{type: api, name: n, method: GET, url: /x}]
+
+- name: step id
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, id: s1, name: n, method: GET, url: /x}]}
+
+- name: bodyFromFixture with overrides
+  expect: accept
+  doc:
+    id: t
+    title: T
+    steps: [{type: api, name: n, method: POST, url: /x, bodyFromFixture: {ref: post-create.yaml, overrides: {userId: 3}}}]
+
+- name: use step with action and properties
+  expect: accept
+  doc:
+    id: t
+    title: T
+    steps: [{type: use, name: n, action: "users.create", properties: {name: bob}, as: created}]
+
+- name: condition with wait
+  expect: accept
+  doc:
+    id: t
+    title: T
+    steps: [{type: api, name: n, method: GET, url: /x, condition: {type: jsonpath, path: "$.done", equals: true, wait: {timeoutMs: 5000, intervalMs: 500}}}]
+
+- name: condition equals null
+  expect: accept
+  doc:
+    id: t
+    title: T
+    steps: [{type: api, name: n, method: GET, url: /x, condition: {type: jsonpath, path: "$.x", equals: null}}]
+
+- name: step-level status pending
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, status: pending}]}
+
+- name: schema assertion by ref
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: schema, ref: user.json}]}]}
+
+- name: schema assertion inline
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: schema, inline: {type: object}}]}]}
+
+- name: body with generator
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: POST, url: /x, body: {title: {gen: {type: string, minLength: 5, maxLength: 10}}}}]}
+
+- name: gen date-time with format
+  expect: accept
+  doc: {id: t, title: T, variables: {at: {gen: {type: date-time, format: iso8601}}}, steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: lowercase http method
+  expect: accept
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: get, url: /x}]}
+
+- name: markers alias for tags
+  expect: accept
+  doc: {id: t, title: T, markers: [smoke], steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: setup only, no steps
+  expect: accept
+  doc: {id: t, title: T, setup: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: cleanup only, no steps
+  expect: accept
+  doc: {id: t, title: T, cleanup: [{type: api, name: n, method: GET, url: /x}]}
+
+# --- the constraints the schema must express ---
+- name: use step with neither ref nor action
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: use, name: n}]}
+
+- name: api step with both body and bodyFromFixture
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: POST, url: /x, body: {a: 1}, bodyFromFixture: {ref: f.yaml}}]}
+
+- name: schema assertion with neither ref nor inline
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: schema}]}]}
+
+- name: as with a hyphen on a use step
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: use, name: n, action: "m.a", as: "not-an-identifier"}]}
+
+- name: unsupported assertion type
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, assert: [{type: startswith, expected: a}]}]}
+
+- name: unsupported step type
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: grpc, name: n}]}
+
+- name: TRACE is not a supported method
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: TRACE, url: /x}]}
+
+- name: unsupported condition type
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, condition: {type: xpath, path: /a, equals: 1}}]}
+
+- name: api step without url
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET}]}
+
+- name: step without name
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, method: GET, url: /x}]}
+
+- name: no steps anywhere
+  expect: reject
+  doc: {id: t, title: T}
+
+- name: test status other than pending
+  expect: reject
+  doc: {id: t, title: T, status: done, steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: step status other than pending
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: GET, url: /x, status: skipped}]}
+
+- name: unknown generator type
+  expect: reject
+  doc: {id: t, title: T, variables: {x: {gen: {type: ipv4}}}, steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: unsupported date-time format
+  expect: reject
+  doc: {id: t, title: T, variables: {x: {gen: {type: date-time, format: unix}}}, steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: import without module
+  expect: reject
+  doc: {id: t, title: T, imports: [{alias: u}], steps: [{type: api, name: n, method: GET, url: /x}]}
+
+- name: bodyFromFixture with non-object overrides
+  expect: reject
+  doc: {id: t, title: T, steps: [{type: api, name: n, method: POST, url: /x, bodyFromFixture: {ref: f.yaml, overrides: [1, 2]}}]}
