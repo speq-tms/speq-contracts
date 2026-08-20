@@ -5,6 +5,7 @@ wiring these into CI is [speq-tms/speq-docs#13](https://github.com/speq-tms/speq
 
 | File | Schema |
 | --- | --- |
+| `manifest-v1.yaml` | `schemas/manifest/v1.json` |
 | `test-v1.yaml` | `schemas/test/v1.json` |
 | `suite-v1.yaml` | `schemas/suite/v1.json` |
 | `module-v1.yaml` | `schemas/module/v1.json` |
@@ -39,8 +40,11 @@ document that parses and then misbehaves later, so the strictness is the point:
 - `validate_module_content` checks only the shape of `returns` expressions, never the steps of an
   action, so `speq validate` passes a module whose action cannot run
   ([#23](https://github.com/speq-tms/speq-docs/issues/23)).
+- `coverage.failBelow` is any `f64` to the parser, so a threshold above 100 simply makes a gate that
+  never passes. The schema bounds it to 0..100.
 `environment/v1.json` is the one open schema, because every key other than `baseUrl` and `headers`
 becomes a variable of that name and there is no fixed key set to close over.
 
-`parity: run-only` marks a case no `speq validate` pass covers — environment files are read at run time,
-and a fixture is loaded only when a step's `bodyFromFixture.ref` points at it.
+`parity: run-only` marks a case no `speq validate` pass covers — the manifest and the environment files
+are read at every command's start rather than by `validate`, and a fixture is loaded only when a step's
+`bodyFromFixture.ref` points at it.

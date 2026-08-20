@@ -109,7 +109,7 @@
     "coverage": {
       "type": "object",
       "additionalProperties": false,
-      "description": "API coverage analysis against an OpenAPI specification. Keys here are snake_case, unlike the rest of the manifest, because CoverageConfig carries no rename_all.",
+      "description": "API coverage analysis against an OpenAPI specification.",
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -125,12 +125,25 @@
           "default": false,
           "description": "Print the covered and uncovered endpoint lists after the run."
         },
-        "fail_below": {
+        "failBelow": {
           "type": ["number", "null"],
           "minimum": 0,
           "maximum": 100,
           "description": "Fail the run when coverage is below this percentage. Null means no gate."
+        },
+        "fail_below": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Deprecated spelling of 'failBelow', accepted by speq-cli because it is what v1.0.0 shipped. Prefer 'failBelow', which matches every other manifest key."
         }
+      },
+      "not": {
+        "required": [
+          "failBelow",
+          "fail_below"
+        ],
+        "$comment": "'fail_below' is a serde alias of 'failBelow', so writing both raises a duplicate-field parse error rather than one winning."
       }
     }
   }

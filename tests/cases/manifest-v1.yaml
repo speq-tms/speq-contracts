@@ -1,0 +1,80 @@
+# Conformance cases for schemas/manifest/v1.json. See README.md.
+#
+# The manifest is read by read_manifest at every command's start, not by
+# 'speq validate', so cases about how it parses are parity: run-only.
+- name: the minimum a manifest needs
+  expect: accept
+  doc: {version: "1", project: demo, defaultEnvironment: ci}
+
+- name: every directory key
+  expect: accept
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    environmentsDir: environments
+    suitesDir: suites
+    reportsDir: reports
+    schemasDir: schemas
+    modulesDir: modules
+    fixturesDir: fixtures
+
+- name: coverage threshold in camelCase
+  expect: accept
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    coverage: {enabled: true, openapi: ./openapi.yaml, report: true, failBelow: 80}
+
+- name: coverage threshold in the deprecated snake_case spelling
+  expect: accept
+  why: >-
+    'fail_below' is what v1.0.0 shipped and what speq-examples still writes, so
+    speq-cli keeps it as a serde alias of 'failBelow' (speq-tms/speq-docs#1).
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    coverage: {enabled: true, fail_below: 80}
+
+- name: coverage with both spellings of the threshold
+  expect: reject
+  parity: run-only
+  why: >-
+    They are one serde field, so read_manifest fails with
+    'coverage: duplicate field `failBelow`' rather than picking a winner.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    coverage: {failBelow: 90, fail_below: 50}
+
+- name: a manifest with no version
+  expect: reject
+  parity: run-only
+  why: >-
+    'speq validate' does not re-check the manifest; read_manifest does, at every
+    command's start, where a missing required field is a deserialisation error.
+  doc: {project: demo, defaultEnvironment: ci}
+
+- name: an unknown top-level key
+  expect: reject
+  parity: schema-only
+  why: >-
+    speq-cli ignores unknown manifest keys silently, so a misspelled 'suitesDir'
+    leaves the project pointing at the default directory with no warning. The
+    schema is closed so an editor says so.
+  doc: {version: "1", project: demo, defaultEnvironment: ci, suiteDir: suites}
+
+- name: a coverage threshold above 100
+  expect: reject
+  parity: schema-only
+  why: >-
+    speq-cli accepts any f64 and the gate simply never passes. A percentage
+    outside 0..100 is always a mistake.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    coverage: {failBelow: 140}
