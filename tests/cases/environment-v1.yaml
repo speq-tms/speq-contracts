@@ -45,3 +45,24 @@
     baseUrl: https://example.test
     token: t0ken
     headers: {authorization: "Bearer {{token}}"}
+
+- name: an http block narrowing the manifest's transport policy
+  expect: accept
+  why: >-
+    Like 'headers', 'http' is read rather than turned into a variable. Only the
+    fields named here override the manifest; the rest fall through.
+  doc:
+    name: ci
+    baseUrl: https://api.example.com
+    http: {timeoutMs: 2000}
+
+- name: an environment http block with a zero timeout
+  expect: reject
+  why: >-
+    'speq validate' now reads every environment file's http block, so a budget
+    that can never be met is reported before a run rather than on its first
+    request.
+  doc:
+    name: ci
+    baseUrl: https://api.example.com
+    http: {timeoutMs: 0}

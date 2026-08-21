@@ -5,7 +5,11 @@
   "description": "The manifest.yaml at the root of a .speq project, parsed as Manifest in speq-cli/src/manifest/mod.rs.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "project", "defaultEnvironment"],
+  "required": [
+    "version",
+    "project",
+    "defaultEnvironment"
+  ],
   "properties": {
     "version": {
       "type": "string",
@@ -58,6 +62,10 @@
       "default": "fixtures",
       "description": "Directory a step's bodyFromFixture.ref resolves against."
     },
+    "http": {
+      "$ref": "../common/v1.json#/$defs/httpTransport",
+      "description": "Transport policy for every outbound request: timeouts, redirects, proxy and TLS."
+    },
     "retry": {
       "type": "object",
       "additionalProperties": false,
@@ -82,7 +90,10 @@
         },
         "backoff": {
           "type": "string",
-          "enum": ["fixed", "exponential"],
+          "enum": [
+            "fixed",
+            "exponential"
+          ],
           "default": "fixed",
           "description": "How the delay grows between attempts."
         },
@@ -99,7 +110,11 @@
             "statusCodes": {
               "type": "array",
               "description": "Response statuses that trigger a retry, for example [429, 502, 503, 504].",
-              "items": { "type": "integer", "minimum": 100, "maximum": 599 },
+              "items": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 599
+              },
               "uniqueItems": true
             }
           }
@@ -117,7 +132,10 @@
           "description": "Also switched on by the --coverage flag."
         },
         "openapi": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "description": "Path to the OpenAPI document, relative to the project root. Overridden by --openapi. Without it, coverage is skipped with a warning."
         },
         "report": {
@@ -126,13 +144,19 @@
           "description": "Print the covered and uncovered endpoint lists after the run."
         },
         "failBelow": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Fail the run when coverage is below this percentage. Null means no gate."
         },
         "fail_below": {
-          "type": ["number", "null"],
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 100,
           "description": "Deprecated spelling of 'failBelow', accepted by speq-cli because it is what v1.0.0 shipped. Prefer 'failBelow', which matches every other manifest key."

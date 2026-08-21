@@ -78,3 +78,80 @@
     project: demo
     defaultEnvironment: ci
     coverage: {failBelow: 140}
+
+- name: a full http transport block
+  expect: accept
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    http:
+      timeoutMs: 15000
+      connectTimeoutMs: 5000
+      followRedirects: true
+      proxy: http://proxy.internal:8080
+      caFile: tls/ca.pem
+      clientCert: tls/client.pem
+      clientKey: tls/client.key
+      insecureSkipVerify: false
+
+- name: followRedirects as an explicit hop limit
+  expect: accept
+  why: >-
+    The field is a bool or an integer: false and 0 both mean 'do not follow',
+    true means the default limit of 10 hops.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    http: {followRedirects: 4}
+
+- name: a zero request timeout
+  expect: reject
+  parity: run-only
+  why: >-
+    HttpConfig::validate rejects it at read_manifest time -- a budget of zero is
+    a client that can never complete a request, not a client without a budget.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    http: {timeoutMs: 0}
+
+- name: a connect timeout larger than the total budget
+  expect: accept
+  parity: cli-only
+  why: >-
+    read_manifest rejects it -- the connect budget is a subset of the total one,
+    so a larger value can never be reached. JSON Schema has no way to compare
+    two sibling numbers, so the schema cannot carry the constraint and the
+    editor stays quiet where the CLI does not.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    http: {timeoutMs: 1000, connectTimeoutMs: 5000}
+
+- name: a client certificate without its key
+  expect: reject
+  parity: run-only
+  why: >-
+    rustls needs certificate and key together to build an identity, so half a
+    pair is a mutual-TLS setup that silently does not authenticate.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    http: {clientCert: tls/client.pem}
+
+- name: a misspelled http key
+  expect: reject
+  parity: run-only
+  why: >-
+    HttpConfig is the one manifest block with deny_unknown_fields, so a typo is
+    an error instead of a transport setting that silently never applies.
+  doc:
+    version: "1"
+    project: demo
+    defaultEnvironment: ci
+    http: {timeoutMS: 5000}
