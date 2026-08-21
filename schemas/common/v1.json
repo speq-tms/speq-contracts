@@ -67,7 +67,7 @@
         },
         "headers": {
           "type": "object",
-          "description": "Request headers. Values must be strings \u2014 quote numeric values in YAML.",
+          "description": "Request headers. Values must be strings — quote numeric values in YAML.",
           "additionalProperties": {
             "type": "string"
           }
@@ -97,7 +97,7 @@
         },
         "as": {
           "type": "string",
-          "description": "Binds the step result under this name, so later steps can reference {{<name>.\u2026}}. Meaningful for 'use' steps calling a module action with 'returns'."
+          "description": "Binds the step result under this name, so later steps can reference {{<name>.…}}. Meaningful for 'use' steps calling a module action with 'returns'."
         },
         "assert": {
           "type": "array",
@@ -109,6 +109,11 @@
         "condition": {
           "$ref": "#/$defs/condition",
           "description": "Gate the step on a condition, optionally polling until it holds."
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Narrowest level of the request timeout: overrides the manifest and environment 'http.timeoutMs' for this step only. Milliseconds."
         },
         "status": {
           "type": "string",
@@ -185,6 +190,73 @@
           }
         }
       ]
+    },
+    "httpTransport": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Transport policy for outbound requests, parsed as HttpConfig in speq-cli/src/manifest/mod.rs. Declared in the manifest and narrowed per environment; the two are merged field by field, so an environment block overrides only the fields it names. A step's 'timeoutMs' narrows the request budget once more.",
+      "properties": {
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 30000,
+          "description": "Total budget for one request, in milliseconds. A request that outlives it fails with 'timeout: request exceeded <n>ms budget'. reqwest has no default of its own, so without this the runtime applies 30000."
+        },
+        "connectTimeoutMs": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10000,
+          "description": "Budget for establishing the connection, a subset of timeoutMs. Must not exceed timeoutMs."
+        },
+        "followRedirects": {
+          "oneOf": [
+            {
+              "type": "boolean",
+              "description": "false never follows a redirect; true follows up to 10 hops."
+            },
+            {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum number of hops to follow. 0 is equivalent to false."
+            }
+          ],
+          "default": true,
+          "description": "Redirect policy. Accepts a bool or an explicit hop limit."
+        },
+        "proxy": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Proxy URL applied to every request, for example 'http://proxy.internal:8080'."
+        },
+        "caFile": {
+          "type": "string",
+          "minLength": 1,
+          "description": "PEM bundle of additional roots to trust, relative to the project root. For a private or self-signed certificate authority."
+        },
+        "clientCert": {
+          "type": "string",
+          "minLength": 1,
+          "description": "PEM client certificate for mutual TLS, relative to the project root. Requires 'clientKey'."
+        },
+        "clientKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "PEM private key for 'clientCert', relative to the project root. Requires 'clientCert'."
+        },
+        "insecureSkipVerify": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disables certificate verification. Accepted so a self-signed staging API is testable, not because it is safe -- never set it against an environment that holds real data."
+        }
+      },
+      "dependentRequired": {
+        "clientCert": [
+          "clientKey"
+        ],
+        "clientKey": [
+          "clientCert"
+        ]
+      }
     },
     "httpMethod": {
       "description": "GET, POST, PUT, PATCH, DELETE, HEAD or OPTIONS. The parser upper-cases before comparing, so any casing is accepted; uppercase is canonical. TRACE is not supported.",

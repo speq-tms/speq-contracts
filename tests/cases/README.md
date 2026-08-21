@@ -43,6 +43,11 @@ document that parses and then misbehaves later, so the strictness is the point:
 `environment/v1.json` is the one open schema, because every key other than `baseUrl` and `headers`
 becomes a variable of that name and there is no fixed key set to close over.
 
+`parity: cli-only` is the inverse: the CLI rejects the document and the schema accepts it, because
+JSON Schema cannot express the constraint at all. Comparing two sibling numbers — `http.connectTimeoutMs`
+against `http.timeoutMs` — is the only such case today. `expect` records what the *schema* does, so these
+read `accept`; the `why` names the CLI rule the schema cannot mirror.
+
 `parity: run-only` marks a case no `speq validate` pass covers — the manifest and the environment files
 are read at every command's start rather than by `validate`, and a fixture is loaded only when a step's
 `bodyFromFixture.ref` points at it.

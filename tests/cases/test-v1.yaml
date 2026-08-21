@@ -178,3 +178,33 @@
 - name: bodyFromFixture with non-object overrides
   expect: reject
   doc: {id: t, title: T, steps: [{type: api, name: n, method: POST, url: /x, bodyFromFixture: {ref: f.yaml, overrides: [1, 2]}}]}
+
+- name: a step narrowing the request timeout
+  expect: accept
+  why: >-
+    'timeoutMs' is the narrowest of the three timeout levels -- manifest, then
+    environment, then the step -- and applies to this request only.
+  doc:
+    id: demo.timeout
+    title: a step with its own budget
+    steps:
+      - type: api
+        name: slow endpoint
+        method: GET
+        url: /slow
+        timeoutMs: 2000
+
+- name: a step timeout of zero
+  expect: reject
+  why: >-
+    validate_step rejects it for the same reason the manifest does: a budget of
+    zero can never be met.
+  doc:
+    id: demo.timeout-zero
+    title: a step with an impossible budget
+    steps:
+      - type: api
+        name: slow endpoint
+        method: GET
+        url: /slow
+        timeoutMs: 0

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/environment/v1.json",
   "title": "speq environment v1",
-  "description": "One file in the environments directory, selected with --env. Read by read_env_config in speq-cli/src/cli/run.rs, which treats 'baseUrl' and 'headers' specially and turns every other top-level key into a variable of the same name. This schema is therefore open, unlike the other .speq schemas.",
+  "description": "One file in the environments directory, selected with --env. Read by read_env_config in speq-cli/src/cli/run.rs, which treats 'baseUrl', 'headers' and 'http' specially and turns every other top-level key into a variable of the same name. This schema is therefore open, unlike the other .speq schemas.",
   "type": "object",
   "properties": {
     "baseUrl": {
@@ -16,7 +16,13 @@
     "headers": {
       "type": "object",
       "description": "Headers sent with every request of the run. Values are template-rendered like a step's headers, so they may reference environment variables. A step's own 'headers' entry of the same name replaces the environment one, case-insensitively, so only one spelling reaches the wire. Unlike every other key, this one does not become a variable.",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "http": {
+      "$ref": "../common/v1.json#/$defs/httpTransport",
+      "description": "Transport policy narrowing the manifest's 'http' block for this environment. Merged field by field: fields left unset here keep the manifest's value. Like 'headers', this key does not become a variable."
     }
   },
   "additionalProperties": {
