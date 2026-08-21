@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/manifest/v1.json",
   "title": "speq manifest v1",
-  "description": "The manifest.yaml at the root of a .speq project, parsed as Manifest in speq-cli/src/manifest/mod.rs.",
+  "description": "The manifest.yaml at the root of a .speq project, parsed as Manifest in speq-cli/src/manifest/mod.rs. Any string value may carry an '${VAR}' placeholder, resolved from the OS environment when the file is loaded; '${VAR:-default}' supplies a fallback and '$${VAR}' is a literal. Substitution happens before this schema applies, so a placeholder is never itself validated against the field's type.",
   "type": "object",
   "additionalProperties": false,
   "required": [

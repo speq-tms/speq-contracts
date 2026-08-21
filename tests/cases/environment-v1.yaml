@@ -66,3 +66,17 @@
     name: ci
     baseUrl: https://api.example.com
     http: {timeoutMs: 0}
+
+- name: values carrying ${VAR} placeholders
+  expect: accept
+  parity: run-only
+  why: >-
+    Substitution runs before deserialisation, so the schema only ever sees the
+    resolved value. The case exists to pin that no field is narrowed in a way
+    that would reject the placeholder text an editor checks before resolution.
+  doc:
+    name: ci
+    baseUrl: "${SPEQ_BASE_URL:-https://api.example.com}"
+    headers:
+      authorization: "Bearer ${SPEQ_TOKEN}"
+    literalDollar: "$${NOT_A_PLACEHOLDER}"

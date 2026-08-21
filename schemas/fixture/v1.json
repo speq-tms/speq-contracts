@@ -2,15 +2,19 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/fixture/v1.json",
   "title": "speq fixture v1",
-  "description": "One file in the fixtures directory, referenced from a step's bodyFromFixture.ref. Parsed as FixtureFile in speq-cli/src/fixtures/mod.rs.",
+  "description": "One file in the fixtures directory, referenced from a step's bodyFromFixture.ref. Parsed as FixtureFile in speq-cli/src/fixtures/mod.rs. Any string value may carry an '${VAR}' placeholder, resolved from the OS environment when the file is loaded; '${VAR:-default}' supplies a fallback and '$${VAR}' is a literal. Substitution happens before this schema applies, so a placeholder is never itself validated against the field's type.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["fixture"],
+  "required": [
+    "fixture"
+  ],
   "properties": {
     "fixture": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["build"],
+      "required": [
+        "build"
+      ],
       "properties": {
         "build": {
           "$ref": "../common/v1.json#/$defs/valueOrGen",

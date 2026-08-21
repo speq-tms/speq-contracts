@@ -13,6 +13,19 @@ One schema per `.speq` artifact type, plus `common/` for the definitions more th
 | `summary.json` from a run | `results/v1.json` |
 | — shared definitions — | `common/v1.json` |
 
+## `${VAR}` placeholders
+
+Any string value in any of these artifacts may hold `${VAR}`, resolved from the OS environment as the file
+is loaded. `${VAR:-default}` supplies a fallback; `$${VAR}` is a literal. A placeholder with neither a
+variable nor a default is a load-time error, not an empty string.
+
+This is invisible to the schemas by design. Substitution happens *before* a document is deserialised, so
+what a schema sees is the resolved value — a placeholder is never validated against the field's type, and
+no schema needs a pattern permitting the syntax. The rule to preserve is the inverse one: a field must not
+be narrowed with `pattern`, `enum` or `format` in a way that a resolved value could fail while the
+placeholder text would have passed, because the schema is what an editor checks before resolution is
+possible.
+
 ## Resolving the cross-file references
 
 A step is the same construct in a test spec, a suite hook and a module action, so it is defined once in
