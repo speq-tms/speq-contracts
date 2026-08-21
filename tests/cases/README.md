@@ -5,6 +5,7 @@ wiring these into CI is [speq-tms/speq-docs#13](https://github.com/speq-tms/speq
 
 | File | Schema |
 | --- | --- |
+| `manifest-v1.yaml` | `schemas/manifest/v1.json` |
 | `test-v1.yaml` | `schemas/test/v1.json` |
 | `suite-v1.yaml` | `schemas/suite/v1.json` |
 | `module-v1.yaml` | `schemas/module/v1.json` |
@@ -33,18 +34,15 @@ such a case is wrong — that is the direction of authority this repository has 
 `parity: schema-only` marks a case the CLI accepts and the schema rejects. Every one of them is a
 document that parses and then misbehaves later, so the strictness is the point:
 
-- `speq-cli` ignores unknown keys everywhere, so a misspelled or misplaced key is silently dropped —
-  a `module:` wrapper produces a module with no actions, top-level suite hooks are simply never run.
-  The schemas are closed so an editor says so.
-- `validate_module_content` checks only the shape of `returns` expressions, never the steps of an
-  action, so `speq validate` passes a module whose action cannot run
-  ([#23](https://github.com/speq-tms/speq-docs/issues/23)).
-- An environment's `headers` key is not applied as headers at all
-  ([#21](https://github.com/speq-tms/speq-docs/issues/21)); the schema states the convention the key is
-  named for.
+- `speq-cli` ignores unknown keys in most places, so a misspelled or misplaced key is silently
+  dropped — top-level suite hooks are simply never run. The schemas are closed so an editor says so.
+  Module files are the exception: `speq validate` now reports an unknown top-level key itself, so the
+  `module:` wrapper case is ordinary `parity: cli`.
+- `coverage.failBelow` is any `f64` to the parser, so a threshold above 100 simply makes a gate that
+  never passes. The schema bounds it to 0..100.
+`environment/v1.json` is the one open schema, because every key other than `baseUrl` and `headers`
+becomes a variable of that name and there is no fixed key set to close over.
 
-`environment/v1.json` is the one open schema, because every key other than `baseUrl` becomes a variable
-of that name and there is no fixed key set to close over.
-
-`parity: run-only` marks a case no `speq validate` pass covers — environment files are read at run time,
-and a fixture is loaded only when a step's `bodyFromFixture.ref` points at it.
+`parity: run-only` marks a case no `speq validate` pass covers — the manifest and the environment files
+are read at every command's start rather than by `validate`, and a fixture is loaded only when a step's
+`bodyFromFixture.ref` points at it.

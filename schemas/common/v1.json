@@ -256,7 +256,7 @@
           "description": "Expected value. Any JSON value."
         },
         "value": {
-          "description": "Alternative to 'expected', accepted by the parser."
+          "description": "Accepted spelling of 'expected', the way 'markers' is accepted for 'tags'. Supplying both in one assertion is a parse error in speq-cli, so this schema rejects it too. Prefer 'expected'."
         },
         "ref": {
           "type": "string",
@@ -291,6 +291,13 @@
           }
         ],
         "$comment": "A 'schema' assertion needs either 'ref' or 'inline'."
+      },
+      "not": {
+        "required": [
+          "expected",
+          "value"
+        ],
+        "$comment": "'value' is an alias of 'expected' in speq-cli, so writing both raises a duplicate-field parse error rather than one winning."
       }
     },
     "condition": {

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/environment/v1.json",
   "title": "speq environment v1",
-  "description": "One file in the environments directory, selected with --env. Read by read_env_vars in speq-cli/src/cli/run.rs, which treats 'baseUrl' specially and turns every other top-level key into a variable of the same name. This schema is therefore open, unlike the other .speq schemas.",
+  "description": "One file in the environments directory, selected with --env. Read by read_env_config in speq-cli/src/cli/run.rs, which treats 'baseUrl' and 'headers' specially and turns every other top-level key into a variable of the same name. This schema is therefore open, unlike the other .speq schemas.",
   "type": "object",
   "properties": {
     "baseUrl": {
@@ -15,7 +15,7 @@
     },
     "headers": {
       "type": "object",
-      "description": "By convention, headers to send with every request — but the CLI does NOT apply them. Only a step's own 'headers' block reaches the request; this key becomes the variable {{headers}} like any other. See speq-tms/speq-docs#21.",
+      "description": "Headers sent with every request of the run. Values are template-rendered like a step's headers, so they may reference environment variables. A step's own 'headers' entry of the same name replaces the environment one, case-insensitively, so only one spelling reaches the wire. Unlike every other key, this one does not become a variable.",
       "additionalProperties": { "type": "string" }
     }
   },
