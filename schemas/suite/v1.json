@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/suite/v1.json",
   "title": "speq suite init v1",
-  "description": "An init.yaml in the suites tree, parsed as SuiteInitSpec in speq-cli/src/parser/mod.rs. Every init.yaml from the suites root down to a test's own directory applies to that test, nearest last.",
+  "description": "An init.yaml in the suites tree, parsed as SuiteInitSpec in speq-cli/src/parser/mod.rs. Every init.yaml from the suites root down to a test's own directory applies to that test, nearest last. Any string value may carry an '${VAR}' placeholder, resolved from the OS environment when the file is loaded; '${VAR:-default}' supplies a fallback and '$${VAR}' is a literal. Substitution happens before this schema applies, so a placeholder is never itself validated against the field's type.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -14,32 +14,44 @@
         "variables": {
           "type": "object",
           "description": "Variables available to every test under this directory. A test's own variables win.",
-          "additionalProperties": { "$ref": "../common/v1.json#/$defs/valueOrGen" }
+          "additionalProperties": {
+            "$ref": "../common/v1.json#/$defs/valueOrGen"
+          }
         },
         "imports": {
           "type": "array",
           "description": "Modules available to every test under this directory.",
-          "items": { "$ref": "../common/v1.json#/$defs/import" }
+          "items": {
+            "$ref": "../common/v1.json#/$defs/import"
+          }
         },
         "beforeAll": {
           "type": "array",
           "description": "Steps run once before the first test in this suite.",
-          "items": { "$ref": "../common/v1.json#/$defs/step" }
+          "items": {
+            "$ref": "../common/v1.json#/$defs/step"
+          }
         },
         "beforeEach": {
           "type": "array",
           "description": "Steps run before each test in this suite.",
-          "items": { "$ref": "../common/v1.json#/$defs/step" }
+          "items": {
+            "$ref": "../common/v1.json#/$defs/step"
+          }
         },
         "afterEach": {
           "type": "array",
           "description": "Steps run after each test in this suite.",
-          "items": { "$ref": "../common/v1.json#/$defs/step" }
+          "items": {
+            "$ref": "../common/v1.json#/$defs/step"
+          }
         },
         "afterAll": {
           "type": "array",
           "description": "Steps run once after the last test in this suite.",
-          "items": { "$ref": "../common/v1.json#/$defs/step" }
+          "items": {
+            "$ref": "../common/v1.json#/$defs/step"
+          }
         }
       }
     }

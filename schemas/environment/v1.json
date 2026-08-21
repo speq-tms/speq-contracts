@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/environment/v1.json",
   "title": "speq environment v1",
-  "description": "One file in the environments directory, selected with --env. Read by read_env_config in speq-cli/src/cli/run.rs, which treats 'baseUrl', 'headers' and 'http' specially and turns every other top-level key into a variable of the same name. This schema is therefore open, unlike the other .speq schemas.",
+  "description": "One file in the environments directory, selected with --env. Read by read_env_config in speq-cli/src/cli/run.rs, which treats 'baseUrl', 'headers' and 'http' specially and turns every other top-level key into a variable of the same name. This schema is therefore open, unlike the other .speq schemas. Any string value may carry an '${VAR}' placeholder, resolved from the OS environment when the file is loaded; '${VAR:-default}' supplies a fallback and '$${VAR}' is a literal. Substitution happens before this schema applies, so a placeholder is never itself validated against the field's type.",
   "type": "object",
   "properties": {
     "baseUrl": {

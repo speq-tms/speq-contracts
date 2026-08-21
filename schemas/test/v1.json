@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://speq.dev/schemas/test/v1.json",
   "title": "speq test spec v1",
-  "description": "A single .speq test specification, as accepted by parse_and_validate_test in speq-cli/src/parser/mod.rs. The schema is deliberately closed (additionalProperties: false) so editors flag misspelled keys; the parser itself ignores keys it does not know.",
+  "description": "A single .speq test specification, as accepted by parse_and_validate_test in speq-cli/src/parser/mod.rs. The schema is deliberately closed (additionalProperties: false) so editors flag misspelled keys; the parser itself ignores keys it does not know. Any string value may carry an '${VAR}' placeholder, resolved from the OS environment when the file is loaded; '${VAR:-default}' supplies a fallback and '$${VAR}' is a literal. Substitution happens before this schema applies, so a placeholder is never itself validated against the field's type.",
   "type": "object",
   "additionalProperties": false,
   "required": [
