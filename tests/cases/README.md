@@ -34,12 +34,10 @@ such a case is wrong — that is the direction of authority this repository has 
 `parity: schema-only` marks a case the CLI accepts and the schema rejects. Every one of them is a
 document that parses and then misbehaves later, so the strictness is the point:
 
-- `speq-cli` ignores unknown keys everywhere, so a misspelled or misplaced key is silently dropped —
-  a `module:` wrapper produces a module with no actions, top-level suite hooks are simply never run.
-  The schemas are closed so an editor says so.
-- `validate_module_content` checks only the shape of `returns` expressions, never the steps of an
-  action, so `speq validate` passes a module whose action cannot run
-  ([#23](https://github.com/speq-tms/speq-docs/issues/23)).
+- `speq-cli` ignores unknown keys in most places, so a misspelled or misplaced key is silently
+  dropped — top-level suite hooks are simply never run. The schemas are closed so an editor says so.
+  Module files are the exception: `speq validate` now reports an unknown top-level key itself, so the
+  `module:` wrapper case is ordinary `parity: cli`.
 - `coverage.failBelow` is any `f64` to the parser, so a threshold above 100 simply makes a gate that
   never passes. The schema bounds it to 0..100.
 `environment/v1.json` is the one open schema, because every key other than `baseUrl` and `headers`
