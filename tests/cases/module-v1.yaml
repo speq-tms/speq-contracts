@@ -47,10 +47,6 @@
 
 - name: returns expression with an empty body path
   expect: reject
-  parity: schema-only
-  why: >-
-    validate_module_content splits on '.response.body.' and only checks that the step id
-    exists, so it accepts a trailing empty path. The expression can never resolve at run time.
   doc:
     actions:
       a:
@@ -59,21 +55,13 @@
 
 - name: action step that is not a valid step
   expect: reject
-  parity: schema-only
-  why: >-
-    validate_module_content never calls validate_step, so 'speq validate' passes a module
-    whose action contains an unrunnable step. See speq-tms/speq-docs#23.
   doc:
     actions:
       a:
         steps: [{type: api, name: n, method: GET}]
 
-- name: 'module: wrapper key, which the CLI silently ignores'
+- name: 'module: wrapper key'
   expect: reject
-  parity: schema-only
-  why: >-
-    ModuleSpec ignores unknown keys, so a wrapped file parses as a module with no actions
-    and fails only when a test tries to call one of them.
   doc:
     module:
       actions:
