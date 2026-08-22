@@ -208,3 +208,39 @@
         method: GET
         url: /slow
         timeoutMs: 0
+
+# --- failure semantics, speq-tms/speq-docs#63 ---
+- name: a step that tolerates its own failure
+  expect: accept
+  why: >-
+    Without continueOnError the first step that does not pass ends its group and
+    the rest are reported skipped. The flag is the author's way of saying this
+    particular failure is not a reason to stop.
+  doc:
+    id: demo.continue-on-error
+    title: a probe whose failure is not fatal
+    steps:
+      - type: api
+        name: optional probe
+        method: GET
+        url: /maybe
+        continueOnError: true
+      - type: api
+        name: the step that still matters
+        method: GET
+        url: /always
+
+- name: continueOnError is a boolean
+  expect: reject
+  why: >-
+    'yes' as a string is the classic YAML trap. The schema says boolean so the
+    editor catches it before the runtime silently treats it as absent.
+  doc:
+    id: demo.continue-on-error-string
+    title: a badly typed flag
+    steps:
+      - type: api
+        name: optional probe
+        method: GET
+        url: /maybe
+        continueOnError: "yes"
