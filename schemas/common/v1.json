@@ -115,6 +115,11 @@
           "minimum": 1,
           "description": "Narrowest level of the request timeout: overrides the manifest and environment 'http.timeoutMs' for this step only. Milliseconds."
         },
+        "continueOnError": {
+          "type": "boolean",
+          "default": false,
+          "description": "Keep the group running past this step's failure. The step is still recorded as failed and the test still fails; only the steps after it are still attempted. Without it, the first step that does not pass ends its group and the rest are reported 'skipped'."
+        },
         "status": {
           "type": "string",
           "enum": [

@@ -46,6 +46,11 @@
           "type": "integer",
           "minimum": 0,
           "description": "Number of tests that encountered runtime errors."
+        },
+        "skippedSteps": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of steps that never ran because something before them did not pass. Counts steps, not tests — every other counter here counts tests, and is omitted when zero."
         }
       }
     },
