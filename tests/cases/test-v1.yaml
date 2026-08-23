@@ -244,3 +244,58 @@
         method: GET
         url: /maybe
         continueOnError: "yes"
+
+# --- credentials, speq-tms/speq-docs#61 ---
+
+- name: a step that opts out of the credentials it would inherit
+  expect: accept
+  why: >-
+    The endpoint that issues a token must not be sent one, and neither must a
+    public probe. Leaving the block out inherits; only 'none' refuses.
+  doc:
+    id: demo.auth-none
+    title: logging in is not an authenticated call
+    steps:
+      - type: api
+        name: log in
+        method: POST
+        url: /oauth/token
+        auth: none
+      - type: api
+        name: read the account
+        method: GET
+        url: /me
+        auth:
+          type: bearer
+          token: "{{login.response.body.access_token}}"
+
+- name: a bearer step without a token
+  expect: reject
+  why: >-
+    A scheme that names no credential would silently send nothing. The parser
+    requires the field, so the schema does too.
+  doc:
+    id: demo.auth-bearer-empty
+    title: a scheme with nothing to present
+    steps:
+      - type: api
+        name: read the account
+        method: GET
+        url: /me
+        auth:
+          type: bearer
+
+- name: the opt-out is spelled 'none'
+  expect: reject
+  why: >-
+    'off', 'false' and 'disabled' all read like an opt-out and none of them is
+    one. The block accepts exactly the word 'none'.
+  doc:
+    id: demo.auth-off
+    title: a word that looks like an opt-out
+    steps:
+      - type: api
+        name: probe
+        method: GET
+        url: /health
+        auth: off

@@ -25,6 +25,10 @@
             "$ref": "../common/v1.json#/$defs/import"
           }
         },
+        "auth": {
+          "$ref": "../common/v1.json#/$defs/auth",
+          "description": "Credentials for every test under this directory, overriding the environment's and overridden by a step's. The nearest init.yaml that declares one wins."
+        },
         "beforeAll": {
           "type": "array",
           "description": "Steps run once before the first test in this suite.",

@@ -115,6 +115,10 @@
           "minimum": 1,
           "description": "Narrowest level of the request timeout: overrides the manifest and environment 'http.timeoutMs' for this step only. Milliseconds."
         },
+        "auth": {
+          "$ref": "#/$defs/auth",
+          "description": "Credentials for this step alone, overriding the suite's and the environment's. 'auth: none' opts out — the endpoint that issues a token must not be sent one."
+        },
         "continueOnError": {
           "type": "boolean",
           "default": false,
@@ -262,6 +266,115 @@
           "clientCert"
         ]
       }
+    },
+    "auth": {
+      "description": "Credentials for outbound requests. Written either as the word 'none' or as a block with a 'type'. A hand-written 'Authorization' header always wins over this block, so specs that assembled the header themselves keep working. Every value the block produces — a bearer token, the base64 of a basic pair, a fetched access token — is registered as a secret and redacted out of the console, summary.json and Allure attachments.",
+      "oneOf": [
+        {
+          "const": "none",
+          "description": "Present nothing, and inherit nothing. Needed for the endpoint that issues the credentials and for a public probe; leaving the block out inherits instead of opting out."
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "description": "The same opt-out, written as a block.",
+          "properties": {
+            "type": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "token"
+          ],
+          "description": "A token the caller already holds, sent as 'Authorization: Bearer <token>'.",
+          "properties": {
+            "type": {
+              "const": "bearer"
+            },
+            "token": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The token. Template-rendered, so it may read a value a previous step bound — '{{login.response.body.access_token}}' — and it should normally come from '${VAR}' rather than be written here."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "username",
+            "password"
+          ],
+          "description": "HTTP Basic. The pair is base64-encoded into 'Authorization: Basic <blob>'.",
+          "properties": {
+            "type": {
+              "const": "basic"
+            },
+            "username": {
+              "type": "string",
+              "minLength": 1
+            },
+            "password": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Template-rendered like every other credential; use '${VAR}'."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "tokenUrl",
+            "clientId",
+            "clientSecret"
+          ],
+          "description": "OAuth2 client credentials. The token is fetched once per run, cached in memory keyed by the credential set, refetched when it expires, and refetched once more if the API answers 401 — after which a second 401 is the service's answer and the step reports it.",
+          "properties": {
+            "type": {
+              "const": "oauth2"
+            },
+            "tokenUrl": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Absolute http(s) URL of the token endpoint. May be a '{{template}}', which is checked once rendered instead."
+            },
+            "clientId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "clientSecret": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scopes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Scopes requested, sent space-joined as 'scope'. Optional."
+            },
+            "clientAuth": {
+              "enum": [
+                "body",
+                "basic"
+              ],
+              "default": "body",
+              "description": "Where the client identifies itself: in the form body as 'client_id' and 'client_secret', or as an HTTP Basic header. RFC 6749 requires a server to accept Basic and lets it accept the body; the body is what most providers document, so it is the default."
+            }
+          }
+        }
+      ]
     },
     "httpMethod": {
       "description": "GET, POST, PUT, PATCH, DELETE, HEAD or OPTIONS. The parser upper-cases before comparing, so any casing is accepted; uppercase is canonical. TRACE is not supported.",
