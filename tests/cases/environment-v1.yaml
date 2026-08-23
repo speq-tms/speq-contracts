@@ -80,3 +80,32 @@
     headers:
       authorization: "Bearer ${SPEQ_TOKEN}"
     literalDollar: "$${NOT_A_PLACEHOLDER}"
+
+- name: an environment holding oauth2 client credentials
+  expect: accept
+  why: >-
+    Like 'headers' and 'http', 'auth' is read rather than turned into a
+    variable. Not one credential is written in the file: it names the variables
+    the OS environment supplies, which is the point of the block.
+  doc:
+    name: ci
+    baseUrl: https://api.example.com
+    auth:
+      type: oauth2
+      tokenUrl: https://id.example.com/oauth/token
+      clientId: "${SPEQ_CLIENT_ID}"
+      clientSecret: "${SPEQ_CLIENT_SECRET}"
+      scopes: [orders.read, orders.write]
+
+- name: an unsupported auth scheme
+  expect: reject
+  why: >-
+    'speq validate' reads every environment file's auth block, so a scheme the
+    runtime cannot present is reported before a run rather than on its first
+    request.
+  doc:
+    name: ci
+    baseUrl: https://api.example.com
+    auth:
+      type: apikey
+      key: "${SPEQ_API_KEY}"

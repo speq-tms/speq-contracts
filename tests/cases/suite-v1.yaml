@@ -33,3 +33,22 @@
 - name: import without a module
   expect: reject
   doc: {suite: {imports: [{alias: jp}]}}
+
+# --- credentials, speq-tms/speq-docs#61 ---
+
+- name: a suite presenting credentials of its own
+  expect: accept
+  why: >-
+    The suite sits between the environment and the step: it overrides what the
+    environment set and is overridden by any step that declares its own.
+  doc:
+    suite:
+      auth:
+        type: basic
+        username: "${SPEQ_ADMIN_USER}"
+        password: "${SPEQ_ADMIN_PASSWORD}"
+      beforeAll:
+        - type: api
+          name: seed the account
+          method: POST
+          url: /accounts
